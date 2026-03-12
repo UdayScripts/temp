@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
@@ -316,7 +316,7 @@ async def create_temporary_email(request: EmailAccountCreate, background_tasks: 
             expires_at=expiration_time
         )
         
-        await db.email_accounts.insert_one(account.dict())
+        await db.email_accounts.insert_one(account.model_dump())
         
         # Schedule cleanup
         background_tasks.add_task(cleanup_expired_accounts)
@@ -358,7 +358,7 @@ async def get_emails(email_address: str):
         for email_obj in emails:
             await db.emails.update_one(
                 {"account_email": email_address, "uid": email_obj.uid},
-                {"$set": email_obj.dict()},
+                {"$set": email_obj.model_dump()},
                 upsert=True
             )
         
