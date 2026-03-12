@@ -213,6 +213,28 @@ curl -X POST "https://d89c1895-fe9f-400d-bf96-4a56ef864fdc.preview.emergentagent
 - **Temporary access** - One-time registrations
 - **Spam prevention** - Protect your inbox from unwanted emails
 
+## 📥 Cloning a Specific Branch
+
+To clone a specific branch of this repository (for example, `copilot/update-fastapi-to-latest-version`), use the `-b` flag with `git clone`:
+
+```bash
+git clone -b copilot/update-fastapi-to-latest-version https://github.com/UdayScripts/temp.git
+```
+
+This clones only the specified branch. To also fetch all other branches, run:
+
+```bash
+git fetch --all
+```
+
+Alternatively, clone the full repository and then switch to the desired branch:
+
+```bash
+git clone https://github.com/UdayScripts/temp.git
+cd temp
+git checkout copilot/update-fastapi-to-latest-version
+```
+
 ## 🤝 Contributing
 
 1. Fork the repository

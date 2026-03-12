@@ -23,6 +23,7 @@ import re
 import random
 import string
 import ssl
+import uvicorn
 from urllib.parse import urlparse
 from contextlib import asynccontextmanager
 
@@ -67,6 +68,15 @@ async def lifespan(app: FastAPI):
 
 # Create the main app without a prefix
 app = FastAPI(title="Temporary Email API", version="1.0.0", lifespan=lifespan)
+
+# Add CORS middleware before including routers
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -130,7 +140,9 @@ async def create_cpanel_email(username: str, password: str, domain: str) -> bool
             "skip_update_db": 0
         }
         
-        response = requests.post(url, headers=headers, data=data, verify=False, timeout=30)
+        response = await asyncio.to_thread(
+            requests.post, url, headers=headers, data=data, verify=False, timeout=30
+        )
         result = response.json()
         
         if response.status_code == 200 and result.get("status") == 1:
@@ -156,7 +168,9 @@ async def delete_cpanel_email(email_address: str) -> bool:
             "email": email_address
         }
         
-        response = requests.post(url, headers=headers, data=data, verify=False, timeout=30)
+        response = await asyncio.to_thread(
+            requests.post, url, headers=headers, data=data, verify=False, timeout=30
+        )
         result = response.json()
         
         if response.status_code == 200 and result.get("status") == 1:
@@ -441,16 +455,15 @@ async def delete_email_account(email_address: str):
         raise HTTPException(status_code=500, detail=f"Failed to delete email account: {str(e)}")
 
 @api_router.get("/")
-async def root():
-    return {"message": "Temporary Email API is running"}
+async def api_root():
+    return {"message": "Temporary Email API is running", "docs": "/docs"}
 
 # Include the router in the main app
 app.include_router(api_router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.get("/")
+async def root():
+    return {"message": "Temporary Email API is running"}
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
